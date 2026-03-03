@@ -10,7 +10,7 @@ A LiveCode Builder extension for posting local notifications on macOS 10.8–10.
 ## Requirements
 
 - macOS 10.8 through 10.13
-- LiveCode 9.6 or later
+- OpenXTalk 1.14/LiveCode 9.6 or later
 
 ---
 
