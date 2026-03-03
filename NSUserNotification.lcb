@@ -1,0 +1,88 @@
+library org.openxtalk.nsusernotification
+
+use com.livecode.foreign
+use com.livecode.objc
+
+metadata version is "1.0.0"
+metadata author is "Emily-Elizabeth Howard"
+metadata title is "User Notification Library (Legacy)"
+metadata platforms is "mac"
+
+
+--------------------- foreign handlers
+
+-- NSUserNotificationCenter is the legacy notification API, introduced in macOS 10.8
+-- and deprecated in macOS 10.14. It is no longer functional on macOS 12 and later.
+-- This library is provided for use on macOS 10.8 through 10.13 only.
+
+-- Returns the default user notification center for this process
+private foreign handler NSUserNotificationCenterDefaultUserNotificationCenter() returns ObjcId binds to "objc:NSUserNotificationCenter.+defaultUserNotificationCenter"
+
+-- Allocs and inits an NSUserNotification object, which holds the notification properties
+private foreign handler NSUserNotificationAlloc() returns ObjcRetainedId binds to "objc:NSUserNotification.+alloc"
+private foreign handler NSUserNotificationInit(in AnInstance as ObjcId) returns ObjcId binds to "objc:NSUserNotification.-init"
+
+-- Sets a property on the notification object using KVC (key-value coding).
+-- Used to set "title", "subtitle", "informativeText", and "identifier" string properties.
+private foreign handler NSUserNotificationSetProperty(in Obj as ObjcId, in PValue as ObjcId, in PProp as ObjcId) returns nothing binds to "objc:NSUserNotification.-setValue:forKey:"
+
+-- Delivers the notification immediately via the default notification center
+private foreign handler NSUserNotificationCenterDeliverNotification(in DefaultUserNotificationCenter as ObjcId, in ANSUserNotification as ObjcId) returns nothing binds to "objc:NSUserNotificationCenter.-deliverNotification:"
+
+-- NSDistributedNotificationCenter is a system-wide notification bus for broadcasting
+-- messages between processes on the same machine. Declared here for reference but unused.
+private foreign handler NSDistributedNotificationCenterDefaultCenter() returns ObjcId binds to "objc:NSDistributedNotificationCenter.+defaultCenter"
+private foreign handler NSDistributedNotificationCenterPostNotificationNameObject(in DefaultCenter as ObjcId, in NotificationName as ObjcId, in NotificationObject as ObjcId) returns nothing binds to "objc:NSDistributedNotificationCenter.-postNotificationName:object:"
+
+
+
+--------------------- Public handlers
+
+-- RequestNotificationAuthorization
+-- No-op in this legacy library. NSUserNotificationCenter does not require a runtime
+-- authorization request — permission is controlled solely via System Preferences.
+-- Provided so that call sites are compatible with the modern UNUserNotification library.
+public handler RequestNotificationAuthorization() returns nothing
+	-- no-op: NSUserNotificationCenter does not require runtime authorization
+end handler
+
+
+
+-- PostUserNotification
+-- Posts a local notification via NSUserNotificationCenter (macOS 10.8–10.13).
+-- postTitle       - the bold heading line of the notification (required)
+-- subTitle        - a secondary heading shown below the title (optional)
+-- informativeText - the body text of the notification (optional)
+-- postIdentifier  - a unique string ID for this notification (optional)
+--
+-- Note: on macOS 10.14 and later this call will silently do nothing.
+-- Use the UNUserNotification library for macOS 10.14+.
+public unsafe handler PostUserNotification(in postTitle as String, in subTitle as String, in informativeText as optional String, in postIdentifier as optional String) returns nothing
+	if (the operating system is "mac") then
+		variable DefaultUserNotificationCenter as ObjcId
+		put NSUserNotificationCenterDefaultUserNotificationCenter() into DefaultUserNotificationCenter
+
+		variable ANSUserNotification as ObjcObject
+		put NSUserNotificationAlloc() into ANSUserNotification
+		put NSUserNotificationInit(ANSUserNotification) into ANSUserNotification
+
+		-- Set the title (required), subtitle, informative text, and identifier using KVC.
+		-- Note: the legacy API uses "informativeText" as the key, not "body".
+		NSUserNotificationSetProperty(ANSUserNotification, StringToNSString(postTitle), StringToNSString("title"))
+		if (subTitle is not nothing) then
+			NSUserNotificationSetProperty(ANSUserNotification, StringToNSString(subTitle), StringToNSString("subtitle"))
+		end if
+		if (informativeText is not nothing) then
+			NSUserNotificationSetProperty(ANSUserNotification, StringToNSString(informativeText), StringToNSString("informativeText"))
+		end if
+		if (postIdentifier is not nothing) then
+			NSUserNotificationSetProperty(ANSUserNotification, StringToNSString(postIdentifier), StringToNSString("identifier"))
+		end if
+
+		NSUserNotificationCenterDeliverNotification(DefaultUserNotificationCenter, ANSUserNotification)
+	end if
+end handler
+
+
+
+end library
