@@ -53,6 +53,27 @@ RequestNotificationAuthorization
 
 ---
 
+### `CheckNotificationAuthorizationStatus`
+
+**Type:** command
+
+**Syntax:** `CheckNotificationAuthorizationStatus`
+
+**Summary:** No-op stub provided for call-site compatibility with the modern UNUserNotification library.
+
+**Description:**
+
+This command is provided so that call sites are drop-in compatible with the modern `UNUserNotification` library. It does nothing.
+
+`NSUserNotificationCenter` does not provide a runtime authorization status check. Notification permission is controlled solely via System Preferences on macOS 10.8 through 10.13.
+
+**Example:**
+```livecode
+CheckNotificationAuthorizationStatus
+```
+
+---
+
 ### `PostUserNotification`
 
 **Type:** command
@@ -98,4 +119,4 @@ This library exposes identical handler names to the modern `UNUserNotification` 
 2. Add a call to `RequestNotificationAuthorization` in your `openStack` handler
 3. Ensure your app has a bundle identifier set in Application Settings
 
-No changes to your `PostUserNotification` call sites are required.
+No changes to your `PostUserNotification` or `CheckNotificationAuthorizationStatus` call sites are required.

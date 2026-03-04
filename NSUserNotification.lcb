@@ -3,7 +3,7 @@ library org.openxtalk.nsusernotification
 use com.livecode.foreign
 use com.livecode.objc
 
-metadata version is "1.0.0"
+metadata version is "1.0.1"
 metadata author is "Emily-Elizabeth Howard"
 metadata title is "User Notification Library (Legacy)"
 metadata platforms is "mac"
@@ -44,6 +44,16 @@ private foreign handler NSDistributedNotificationCenterPostNotificationNameObjec
 -- Provided so that call sites are compatible with the modern UNUserNotification library.
 public handler RequestNotificationAuthorization() returns nothing
 	-- no-op: NSUserNotificationCenter does not require runtime authorization
+end handler
+
+
+
+-- CheckNotificationAuthorizationStatus
+-- No-op in this legacy library. NSUserNotificationCenter does not provide a runtime
+-- authorization status check — permission is controlled solely via System Preferences.
+-- Provided so that call sites are compatible with the modern UNUserNotification library.
+public handler CheckNotificationAuthorizationStatus() returns nothing
+	-- no-op: NSUserNotificationCenter does not support runtime authorization status checks
 end handler
 
 
